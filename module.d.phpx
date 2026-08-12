@@ -22,7 +22,7 @@ export function open($path: string, $mode: string = 'r'): Promise<Result<int, st
 ///   <Parameter name="$max_bytes" type="int" required="false" typeLink="/docs/php/types/int">
 ///     Parameter $max_bytes.
 ///   </Parameter>
-///   <ReturnType type="Promise<Result<Object<" />
+///   <ReturnType type="Promise<Result<Object<{ data: mixed, eof: bool }>, string>>" />
 /// </Function>
 export function read($handle: int, $max_bytes: int = 65536): Promise<Result<Object<{ data: mixed, eof: bool }>, string>>
 
@@ -35,7 +35,7 @@ export function read($handle: int, $max_bytes: int = 65536): Promise<Result<Obje
 ///   <Parameter name="$bytes" type="mixed" required="true" typeLink="/docs/php/types/mixed">
 ///     Parameter $bytes.
 ///   </Parameter>
-///   <ReturnType type="Promise<Result<Object<" />
+///   <ReturnType type="Promise<Result<Object<{ written: int }>, string>>" />
 /// </Function>
 export function write($handle: int, $bytes: mixed): Promise<Result<Object<{ written: int }>, string>>
 
@@ -45,7 +45,7 @@ export function write($handle: int, $bytes: mixed): Promise<Result<Object<{ writ
 ///   <Parameter name="$handle" type="int" required="true" typeLink="/docs/php/types/int">
 ///     Parameter $handle.
 ///   </Parameter>
-///   <ReturnType type="Promise<Result<Object<" />
+///   <ReturnType type="Promise<Result<Object<{ ok: bool }>, string>>" />
 /// </Function>
 export function close($handle: int): Promise<Result<Object<{ ok: bool }>, string>>
 
@@ -68,7 +68,7 @@ export function readFile($path: string): Promise<Result<mixed, string>>
 ///   <Parameter name="$bytes" type="mixed" required="true" typeLink="/docs/php/types/mixed">
 ///     Parameter $bytes.
 ///   </Parameter>
-///   <ReturnType type="Promise<Result<Object<" />
+///   <ReturnType type="Promise<Result<Object<{ written: int }>, string>>" />
 /// </Function>
 export function writeFile($path: string, $bytes: mixed): Promise<Result<Object<{ written: int }>, string>>
 
@@ -94,7 +94,7 @@ export function openSync($path: string, $mode: string = 'r'): Result<int, string
 ///   <Parameter name="$max_bytes" type="int" required="false" typeLink="/docs/php/types/int">
 ///     Parameter $max_bytes.
 ///   </Parameter>
-///   <ReturnType type="Result<Object<" />
+///   <ReturnType type="Result<Object<{ data: mixed, eof: bool }>, string>" />
 /// </Function>
 export function readSync($handle: int, $max_bytes: int = 65536): Result<Object<{ data: mixed, eof: bool }>, string>
 
@@ -107,7 +107,7 @@ export function readSync($handle: int, $max_bytes: int = 65536): Result<Object<{
 ///   <Parameter name="$bytes" type="mixed" required="true" typeLink="/docs/php/types/mixed">
 ///     Parameter $bytes.
 ///   </Parameter>
-///   <ReturnType type="Result<Object<" />
+///   <ReturnType type="Result<Object<{ written: int }>, string>" />
 /// </Function>
 export function writeSync($handle: int, $bytes: mixed): Result<Object<{ written: int }>, string>
 
@@ -117,7 +117,7 @@ export function writeSync($handle: int, $bytes: mixed): Result<Object<{ written:
 ///   <Parameter name="$handle" type="int" required="true" typeLink="/docs/php/types/int">
 ///     Parameter $handle.
 ///   </Parameter>
-///   <ReturnType type="Result<Object<" />
+///   <ReturnType type="Result<Object<{ ok: bool }>, string>" />
 /// </Function>
 export function closeSync($handle: int): Result<Object<{ ok: bool }>, string>
 
@@ -140,7 +140,7 @@ export function readFileSync($path: string): Result<mixed, string>
 ///   <Parameter name="$bytes" type="mixed" required="true" typeLink="/docs/php/types/mixed">
 ///     Parameter $bytes.
 ///   </Parameter>
-///   <ReturnType type="Result<Object<" />
+///   <ReturnType type="Result<Object<{ written: int }>, string>" />
 /// </Function>
 export function writeFileSync($path: string, $bytes: mixed): Result<Object<{ written: int }>, string>
 
@@ -163,6 +163,6 @@ export function read_file($path: string): Result<mixed, string>
 ///   <Parameter name="$bytes" type="mixed" required="true" typeLink="/docs/php/types/mixed">
 ///     Parameter $bytes.
 ///   </Parameter>
-///   <ReturnType type="Result<Object<" />
+///   <ReturnType type="Result<Object<{ written: int }>, string>" />
 /// </Function>
 export function write_file($path: string, $bytes: mixed): Result<Object<{ written: int }>, string>
