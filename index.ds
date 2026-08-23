@@ -1,0 +1,18 @@
+// Host-granted fs. Bind byte results with `let`, not `const`.
+// Catalog: read_file, write_file, read_dir, mkdirs. No stat/remove yet.
+
+export async fn read_file(path: string) {
+  return await bridge fs.read_file(path)
+}
+
+export async fn write_file(path: string, data: bytes) {
+  return await bridge fs.write_file(path, data)
+}
+
+export async fn read_dir(path: string) {
+  return await bridge fs.read_dir(path)
+}
+
+export async fn mkdirs(path: string) {
+  return await bridge fs.mkdirs(path)
+}
