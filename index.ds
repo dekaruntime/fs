@@ -1,0 +1,6 @@
+// Host-granted fs. Bind byte results with `let`, not `const`.
+// Catalog is read_file only; other PHPX fs actions are not DS host ops.
+
+export async fn read_file(path: string) {
+  return await bridge fs.read_file(path)
+}
