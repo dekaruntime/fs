@@ -1,2 +1,3 @@
 .cache/
 deka.lock
+tests/tmp-out/

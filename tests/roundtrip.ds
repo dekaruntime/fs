@@ -1,4 +1,12 @@
-import { read_file } from "../index.ds"
+import { read_file, write_file, read_dir, mkdirs } from "../index.ds"
+
+fn utf8(value: string): bytes {
+  let encoded = unsafe { new TextEncoder().encode(value) };
+  return match (encoded) {
+    Ok(buf) => buf,
+    Err(err) => utf8("")
+  };
+}
 
 fn from_utf8(value: bytes): string {
   let decoded = unsafe { new TextDecoder("utf-8", { fatal: false }).decode(value) };
@@ -9,14 +17,14 @@ fn from_utf8(value: bytes): string {
 }
 
 async fn go() {
-  let got = await read_file("tests/hello.txt");
-  const text = match (got) {
+  const hello_res = await read_file("tests/hello.txt");
+  const hello = match (hello_res) {
     Ok(buf) => from_utf8(buf),
     Err(e) => "fail-read"
   };
-  if (text != "hello fs\n") {
+  if (hello != "hello fs\n") {
     print("fail-read");
-    print(text);
+    print(hello);
     return;
   }
 
@@ -30,7 +38,43 @@ async fn go() {
     return;
   }
 
-  print("ok");
+  const mkdir_res = await mkdirs("tests/tmp-out");
+  const made = match (mkdir_res) {
+    Ok(v) => true,
+    Err(e) => false
+  };
+  if (!made) {
+    print("fail-mkdirs");
+    return;
+  }
+  const write_res = await write_file("tests/tmp-out/a.txt", utf8("hi"));
+  const wrote = match (write_res) {
+    Ok(n) => n,
+    Err(e) => 0
+  };
+  const round_res = await read_file("tests/tmp-out/a.txt");
+  const round = match (round_res) {
+    Ok(buf) => from_utf8(buf),
+    Err(e) => "fail-round"
+  };
+  const dir_res = await read_dir("tests/tmp-out");
+  const names = match (dir_res) {
+    Ok(entries) => match (unsafe { entries.map((e) => e.name).join(",") }) {
+      Ok(v) => v,
+      Err(e) => "fail-dir"
+    },
+    Err(e) => "fail-dir"
+  };
+  const has = match (unsafe { String(names).indexOf("a.txt") >= 0 }) {
+    Ok(v) => v,
+    Err(e) => false
+  };
+  if (wrote > 0 && round == "hi" && has) {
+    print("ok");
+  } else {
+    print(round);
+    print(names);
+  }
 }
 
 go()
