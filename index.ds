@@ -1,18 +1,28 @@
 // Host-granted fs. Bind byte results with `let`, not `const`.
 // Catalog: read_file, write_file, read_dir, mkdirs. No stat/remove yet.
+//
+// These are synchronous host ops (`op_php_fs_call_proto` is `#[op2]`), and
+// `bridge` yields `Result<T, E>` directly. Earlier versions wrote them as
+// `await bridge fs.read_file(path)`, which does not typecheck -- `await`
+// expects a `Promise<T>` and gets a `Result`. That is what kept this package
+// red on the stdlib typecheck job (deka#420).
+//
+// Grants: `read_file` and `read_dir` need `security.allow.read`; `write_file`
+// and `mkdirs` need `security.allow.write`. The keys are `read` and `write` --
+// there is no `fs` capability key.
 
-export async fn read_file(path: string) {
-  return await bridge fs.read_file(path)
+export fn read_file(path: string) {
+  return bridge fs.read_file(path)
 }
 
-export async fn write_file(path: string, data: bytes) {
-  return await bridge fs.write_file(path, data)
+export fn write_file(path: string, data: bytes) {
+  return bridge fs.write_file(path, data)
 }
 
-export async fn read_dir(path: string) {
-  return await bridge fs.read_dir(path)
+export fn read_dir(path: string) {
+  return bridge fs.read_dir(path)
 }
 
-export async fn mkdirs(path: string) {
-  return await bridge fs.mkdirs(path)
+export fn mkdirs(path: string) {
+  return bridge fs.mkdirs(path)
 }
