@@ -1,4 +1,11 @@
-// Host-granted fs. Bind byte results with `let`, not `const`.
+// Host-granted fs.
+//
+// Return types are declared explicitly. `bridge` is the FFI boundary and the
+// compiler cannot see through it, so an un-annotated export leaves callers
+// holding `Result<<infer>, <infer>>` -- which then fails at the match site
+// with "`Ok` is not a case of type `<infer>`" (deka#502).
+//
+// Bind byte results with `let`, not `const`.
 // Catalog: read_file, write_file, read_dir, mkdirs. No stat/remove yet.
 //
 // These are synchronous host ops (`op_php_fs_call_proto` is `#[op2]`), and
@@ -11,18 +18,24 @@
 // and `mkdirs` need `security.allow.write`. The keys are `read` and `write` --
 // there is no `fs` capability key.
 
-export fn read_file(path: string) {
+interface DirEntry {
+  name: string
+  is_dir: boolean
+  is_file: boolean
+}
+
+export fn read_file(path: string) Result<bytes, string> {
   return bridge fs.read_file(path)
 }
 
-export fn write_file(path: string, data: bytes) {
+export fn write_file(path: string, data: bytes) Result<number, string> {
   return bridge fs.write_file(path, data)
 }
 
-export fn read_dir(path: string) {
+export fn read_dir(path: string) Result<Array<DirEntry>, string> {
   return bridge fs.read_dir(path)
 }
 
-export fn mkdirs(path: string) {
+export fn mkdirs(path: string) Result<boolean, string> {
   return bridge fs.mkdirs(path)
 }
