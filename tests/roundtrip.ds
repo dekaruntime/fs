@@ -10,9 +10,7 @@ fn say(line: string) {
   };
 }
 
-// The ops are synchronous, so the whole test is too. The previous version was
-// `async fn go()` awaiting each call, which is the form that does not
-// typecheck (deka#420).
+// The fs bridge ops are asynchronous, so calls must be awaited.
 
 fn utf8(value: string) bytes {
   let encoded = unsafe { new TextEncoder().encode(value) };
@@ -30,8 +28,8 @@ fn from_utf8(value: bytes) string {
   };
 }
 
-fn go() {
-  let hello = match (read_file("tests/hello.txt")) {
+async fn go() {
+  let hello = match (await read_file("tests/hello.txt")) {
     Ok(buf) => from_utf8(buf),
     Err(e) => "fail-read"
   };
@@ -41,7 +39,7 @@ fn go() {
     return;
   }
 
-  match (mkdirs("tests/tmp-out")) {
+  match (await mkdirs("tests/tmp-out")) {
     Ok(v) => v,
     Err(e) => false
   };
@@ -49,17 +47,17 @@ fn go() {
   // A file that does not exist yet must be creatable under a write grant.
   // It was not, until deka#434 -- `canonicalize` fails on a missing path and
   // the fallback compared the raw string against a resolved rule.
-  let wrote = match (write_file("tests/tmp-out/a.txt", utf8("hi"))) {
+  let wrote = match (await write_file("tests/tmp-out/a.txt", utf8("hi"))) {
     Ok(n) => n,
     Err(e) => 0
   };
 
-  let round = match (read_file("tests/tmp-out/a.txt")) {
+  let round = match (await read_file("tests/tmp-out/a.txt")) {
     Ok(buf) => from_utf8(buf),
     Err(e) => "fail-round"
   };
 
-  let names = match (read_dir("tests/tmp-out")) {
+  let names = match (await read_dir("tests/tmp-out")) {
     Ok(entries) => match (unsafe { entries.map((e) => e.name).join(",") }) {
       Ok(v) => v,
       Err(e) => "fail-dir"
