@@ -1,20 +1,14 @@
-// Host-granted fs.
+// Host-granted filesystem operations.
 //
-// Return types are declared explicitly. `bridge` is the FFI boundary and the
-// compiler cannot see through it, so an un-annotated export leaves callers
-// holding `Result<<infer>, <infer>>` -- which then fails at the match site
-// with "`Ok` is not a case of type `<infer>`" (deka#502).
+// The package is deliberately thin: the host grant permits these `bridge fs.*`
+// calls, and the host checks phase-aware, target-scoped permissions. There is
+// no package policy or fallback path. File data is always `bytes`; this module
+// never decodes it. Callers that need text must explicitly use @deka/bytes and
+// handle its strict UTF-8 failure value.
 //
-// Bind byte results with `let`, not `const`.
-// Catalog: read_file, write_file, read_dir, mkdirs. No stat/remove yet.
-//
-// These are asynchronous host ops (`op_php_fs_call_proto` is `#[op2(async)]`),
-// so the post-deka#584 surface is `async fn` plus `await bridge`, declared as
-// `Promise<Result<T, E>>`.
-//
-// Grants: `read_file` and `read_dir` need `security.allow.read`; `write_file`
-// and `mkdirs` need `security.allow.write`. The keys are `read` and `write` --
-// there is no `fs` capability key.
+// The async operations yield while the host performs IO. Their `_sync` twins
+// are genuinely blocking host operations for startup and script work; they are
+// not Promises wrapped in a synchronous-looking API.
 
 interface DirEntry {
   name: string
@@ -22,18 +16,51 @@ interface DirEntry {
   is_file: boolean
 }
 
-export async fn read_file(path: string) Promise<Result<bytes, string>> {
+struct FsPermission {
+  capability: string
+  target: string
+}
+
+// Every public operation returns this enum, never a string error. The host
+// materializes these values at the bridge boundary so callers can distinguish
+// denied IO from a missing native filesystem without inspecting messages.
+enum FsError {
+  PermissionDenied(FsPermission),
+  UnsupportedHost,
+  InvalidPayload,
+  Failed(string),
+}
+
+export { FsPermission, FsError }
+
+export async fn read_file(path: string) Promise<Result<bytes, FsError>> {
   return await bridge fs.read_file(path)
 }
 
-export async fn write_file(path: string, data: bytes) Promise<Result<number, string>> {
+export fn read_file_sync(path: string) Result<bytes, FsError> {
+  return bridge fs.read_file_sync(path)
+}
+
+export async fn write_file(path: string, data: bytes) Promise<Result<number, FsError>> {
   return await bridge fs.write_file(path, data)
 }
 
-export async fn read_dir(path: string) Promise<Result<Array<DirEntry>, string>> {
+export fn write_file_sync(path: string, data: bytes) Result<number, FsError> {
+  return bridge fs.write_file_sync(path, data)
+}
+
+export async fn read_dir(path: string) Promise<Result<Array<DirEntry>, FsError>> {
   return await bridge fs.read_dir(path)
 }
 
-export async fn mkdirs(path: string) Promise<Result<boolean, string>> {
+export fn read_dir_sync(path: string) Result<Array<DirEntry>, FsError> {
+  return bridge fs.read_dir_sync(path)
+}
+
+export async fn mkdirs(path: string) Promise<Result<boolean, FsError>> {
   return await bridge fs.mkdirs(path)
+}
+
+export fn mkdirs_sync(path: string) Result<boolean, FsError> {
+  return bridge fs.mkdirs_sync(path)
 }
