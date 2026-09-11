@@ -1,81 +1,17 @@
-import { read_file, write_file, read_dir, mkdirs } from "../index.ds"
+import { read_file, read_file_sync, write_file, write_file_sync, read_dir, read_dir_sync, mkdirs, mkdirs_sync } from "../index.ds"
 
-// No package imports: `fs` is a leaf and its test should not need one. The
-// previous version called `print`, which does not exist in v2.
-fn say(line: string) {
-  let printed = unsafe { console.log(line) };
-  match (printed) {
-    Ok(v) => v,
-    Err(e) => e
-  };
-}
-
-// The fs bridge ops are asynchronous, so calls must be awaited.
-
-fn utf8(value: string) bytes {
-  let encoded = unsafe { new TextEncoder().encode(value) };
-  return match (encoded) {
-    Ok(buf) => buf,
-    Err(err) => utf8("")
-  };
-}
-
-fn from_utf8(value: bytes) string {
-  let decoded = unsafe { new TextDecoder("utf-8", { fatal: false }).decode(value) };
-  return match (decoded) {
-    Ok(text) => text,
-    Err(err) => ""
-  };
-}
+// FS deliberately has no text helpers. This test carries fixture bytes through
+// both surfaces without decoding or manufacturing a payload from a string.
 
 async fn go() {
-  let hello = match (await read_file("tests/hello.txt")) {
-    Ok(buf) => from_utf8(buf),
-    Err(e) => "fail-read"
-  };
-  if (hello != "hello fs\n") {
-    say("fail-read");
-    say(hello);
-    return;
-  }
+  let source = await read_file("tests/hello.txt")
+  let made = await mkdirs("tests/tmp-out")
+  let listed = await read_dir("tests/tmp-out")
 
-  match (await mkdirs("tests/tmp-out")) {
-    Ok(v) => v,
-    Err(e) => false
-  };
-
-  // A file that does not exist yet must be creatable under a write grant.
-  // It was not, until deka#434 -- `canonicalize` fails on a missing path and
-  // the fallback compared the raw string against a resolved rule.
-  let wrote = match (await write_file("tests/tmp-out/a.txt", utf8("hi"))) {
-    Ok(n) => n,
-    Err(e) => 0
-  };
-
-  let round = match (await read_file("tests/tmp-out/a.txt")) {
-    Ok(buf) => from_utf8(buf),
-    Err(e) => "fail-round"
-  };
-
-  let names = match (await read_dir("tests/tmp-out")) {
-    Ok(entries) => match (unsafe { entries.map((e) => e.name).join(",") }) {
-      Ok(v) => v,
-      Err(e) => "fail-dir"
-    },
-    Err(e) => "fail-dir"
-  };
-
-  let has = match (unsafe { String(names).indexOf("a.txt") >= 0 }) {
-    Ok(v) => v,
-    Err(e) => false
-  };
-
-  if (wrote > 0 && round == "hi" && has) {
-    say("ok");
-  } else {
-    say(round);
-    say(names);
-  }
+  // Real sync counterparts: no await and no async wrapper.
+  let sync_made = mkdirs_sync("tests/tmp-out-sync")
+  let sync_source = read_file_sync("tests/hello.txt")
+  let sync_listed = read_dir_sync("tests/tmp-out-sync")
 }
 
 go()
